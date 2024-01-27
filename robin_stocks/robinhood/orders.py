@@ -813,57 +813,61 @@ def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_numbe
 
     if side == "buy":
         priceType = "ask_price"
-    else:
+    else: # sell
         priceType = "bid_price"
 
-    if limitPrice and stopPrice:
-        price = round_price(limitPrice)
-        stopPrice = round_price(stopPrice)
-        orderType = "limit"
-        trigger = "stop"
-    elif limitPrice:
-        price = round_price(limitPrice)
-        orderType = "limit"
-    elif stopPrice:
-        stopPrice = round_price(stopPrice)
-        if side == "buy":
-            price = stopPrice
-        else:
-            price = None
-        trigger = "stop"
-    else:
-        price = round_price(next(iter(get_latest_price(symbol, priceType, extendedHours)), 0.00))
+    # if limitPrice:
+    #     price = round_price(limitPrice)
+    #     orderType = "limit"
+    #     if stopPrice:
+    #         stopPrice = round_price(stopPrice)
+    #         trigger = "stop"
+    # elif stopPrice:
+    #     stopPrice = round_price(stopPrice)
+    #     if side == "buy":
+    #         price = stopPrice
+    #     else:
+    #         price = None
+    #     trigger = "stop"
+    # else:
+    #     price = round_price(next(iter(get_latest_price(symbol, priceType, extendedHours)), 0.00))
+    
     payload = {
         'account': load_account_profile(account_number=account_number, info='url'),
         'instrument': get_instruments_by_symbols(symbol, info='url')[0],
         'symbol': symbol,
-        'price': price,
+        # 'price': price,
         'quantity': quantity,
         'ref_id': str(uuid4()),
         'type': orderType,
-        'stop_price': stopPrice,
+        # 'stop_price': stopPrice,
         'time_in_force': timeInForce,
         'trigger': trigger,
         'side': side,
         'market_hours': market_hours, # choices are ['regular_hours', 'all_day_hours']
-        'extended_hours': extendedHours,
+        # 'extended_hours': extendedHours,
         'order_form_version': 4
     }
     # adjust market orders
-    if orderType == 'market':
-        del payload['stop_price']
-        del payload['extended_hours'] 
+    # if orderType == 'limit':
+    #     price = round_price(next(iter(get_latest_price(symbol, priceType, extendedHours)), 0.00))
+    #     payload['price'] = price
+    #     payload['stop_price'] = stopPrice
+    #     payload['extended_hours'] = extendedHours
+    # if orderType == 'market':
+    #     del payload['stop_price']
+    #     del payload['extended_hours']
         
-    if market_hours == 'regular_hours':
-        if side == "buy":
-            payload['preset_percent_limit'] = "0.05"
-            payload['type'] = 'limit' 
-        # regular market sell
-        elif orderType == 'market' and side == 'sell':
-            del payload['price']   
-    elif market_hours == 'all_day_hours': 
-        payload['type'] = 'limit' 
-        payload['quantity']=int(payload['quantity']) # round to integer instead of fractional
+    # if market_hours == 'regular_hours':
+    #     if side == "buy":
+    #         payload['preset_percent_limit'] = "0.05"
+    #         payload['type'] = 'limit' 
+    #     regular market sell
+    #     elif orderType == 'market' and side == 'sell':
+    #         del payload['price']   
+    # if market_hours == 'all_day_hours': 
+    #     payload['type'] = 'limit' 
+    #     payload['quantity']=int(payload['quantity']) # round to integer instead of fractional
         
     url = orders_url()
 
