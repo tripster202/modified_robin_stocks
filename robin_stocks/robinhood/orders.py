@@ -870,9 +870,7 @@ def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_numbe
     #     payload['quantity']=int(payload['quantity']) # round to integer instead of fractional
         
     url = orders_url()
-
     data = request_post(url, payload, jsonify_data=jsonify)
-
     return(data)
 
 

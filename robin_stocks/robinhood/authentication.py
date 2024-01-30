@@ -190,7 +190,7 @@ def login(username=None, password=None, expiresIn=86400, scope='internal', by_sm
             raise Exception(data['detail'])
     else:
         raise Exception('Error: Trouble connecting to robinhood API. Check internet connection.')
-    print("That's funny!")
+    # print("That's funny!")
     return(data)
 
 
