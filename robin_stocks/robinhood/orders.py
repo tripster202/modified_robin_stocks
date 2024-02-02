@@ -773,142 +773,144 @@ def order_trailing_stop(symbol, quantity, side, trailAmount, trailType='percenta
 
     return (data)
 
-# @login_required
-# def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_number=None, timeInForce='gtc', extendedHours=False, jsonify=True, market_hours='regular_hours'):
-#     """A generic order function.
-
-#     :param symbol: The stock ticker of the stock to sell.
-#     :type symbol: str
-#     :param quantity: The number of stocks to sell.
-#     :type quantity: int
-#     :param side: Either 'buy' or 'sell'
-#     :type side: str
-#     :param limitPrice: The price to trigger the market order.
-#     :type limitPrice: float
-#     :param stopPrice: The price to trigger the limit or market order.
-#     :type stopPrice: float
-#     :param account_number: the robinhood account number.
-#     :type account_number: Optional[str]
-#     :param timeInForce: Changes how long the order will be in effect for. 'gtc' = good until cancelled. \
-#     'gfd' = good for the day.
-#     :type timeInForce: str
-#     :param extendedHours: Premium users only. Allows trading during extended hours. Should be true or false.
-#     :type extendedHours: Optional[str]
-#     :param jsonify: If set to False, function will return the request object which contains status code and headers.
-#     :type jsonify: Optional[str]
-#     :returns: Dictionary that contains information regarding the purchase or selling of stocks, \
-#     such as the order id, the state of order (queued, confired, filled, failed, canceled, etc.), \
-#     the price, and the quantity.
-
-#     """ 
-#     try:
-#         symbol = symbol.upper().strip()
-#     except AttributeError as message:
-#         print(message, file=get_output())
-#         return None
-
-#     orderType = "market"
-#     trigger = "immediate"
-
-#     if side == "buy":
-#         priceType = "ask_price"
-#     else:
-#         priceType = "bid_price"
-
-#     if limitPrice and stopPrice:
-#         price = round_price(limitPrice)
-#         stopPrice = round_price(stopPrice)
-#         orderType = "limit"
-#         trigger = "stop"
-#     elif limitPrice:
-#         price = round_price(limitPrice)
-#         orderType = "limit"
-#     elif stopPrice:
-#         stopPrice = round_price(stopPrice)
-#         if side == "buy":
-#             price = stopPrice
-#         else:
-#             price = None
-#         trigger = "stop"
-#     else:
-#         price = round_price(next(iter(get_latest_price(symbol, priceType, extendedHours)), 0.00))
-#     payload = {
-#         'account': load_account_profile(account_number=account_number, info='url'),
-#         'instrument': get_instruments_by_symbols(symbol, info='url')[0],
-#         'symbol': symbol,
-#         'price': price,
-#         'quantity': quantity,
-#         'ref_id': str(uuid4()),
-#         'type': orderType,
-#         'stop_price': stopPrice,
-#         'time_in_force': timeInForce,
-#         'trigger': trigger,
-#         'side': side,
-#         'market_hours': market_hours, # choices are ['regular_hours', 'all_day_hours']
-#         'extended_hours': extendedHours,
-#         'order_form_version': 4
-#     }
-#     # adjust market orders
-#     if orderType == 'market':
-#         del payload['stop_price']
-#         del payload['extended_hours']
-        
-#     if market_hours == 'regular_hours':
-#         if side == "buy":
-#             payload['preset_percent_limit'] = "0.05"
-#             payload['type'] = 'limit'
-#         # regular market sell
-#         elif orderType == 'market' and side == 'sell':
-#             del payload['price']
-#     elif market_hours == 'all_day_hours':
-#         payload['type'] = 'limit'
-#         payload['quantity']=int(payload['quantity']) # round to integer instead of fractional
-#     url = orders_url()
-#     data = request_post(url, payload, jsonify_data=jsonify)
-#     return(data)
-
-# https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/robinhood/orders.py#L778
 @login_required
-def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_number=None, timeInForce='gfd', extendedHours=False, jsonify=True, market_hours='regular_hours'):
+def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_number=None, timeInForce='gtc', extendedHours=False, jsonify=True, market_hours='regular_hours'):
+    """A generic order function.
+
+    :param symbol: The stock ticker of the stock to sell.
+    :type symbol: str
+    :param quantity: The number of stocks to sell.
+    :type quantity: int
+    :param side: Either 'buy' or 'sell'
+    :type side: str
+    :param limitPrice: The price to trigger the market order.
+    :type limitPrice: float
+    :param stopPrice: The price to trigger the limit or market order.
+    :type stopPrice: float
+    :param account_number: the robinhood account number.
+    :type account_number: Optional[str]
+    :param timeInForce: Changes how long the order will be in effect for. 'gtc' = good until cancelled. \
+    'gfd' = good for the day.
+    :type timeInForce: str
+    :param extendedHours: Premium users only. Allows trading during extended hours. Should be true or false.
+    :type extendedHours: Optional[str]
+    :param jsonify: If set to False, function will return the request object which contains status code and headers.
+    :type jsonify: Optional[str]
+    :returns: Dictionary that contains information regarding the purchase or selling of stocks, \
+    such as the order id, the state of order (queued, confired, filled, failed, canceled, etc.), \
+    the price, and the quantity.
+
+    """ 
+    try:
+        symbol = symbol.upper().strip()
+    except AttributeError as message:
+        print(message, file=get_output())
+        return None
+
+    orderType = "market"
+    trigger = "immediate"
 
     if side == "buy":
-        payload = {
-        'account': load_account_profile(account_number=account_number, info='url'),
-        'instrument': get_instruments_by_symbols(symbol, info='url')[0],
-        'symbol': symbol,
-        'price': round_price(float(next(iter(get_latest_price(symbol, 'ask_price', extendedHours)), 0.00))*1.0025),
-        'quantity': quantity,
-        'ref_id': str(uuid4()),
-        'side': side,
-        'type': 'limit',
-        'trigger': 'immediate',
-        'time_in_force': timeInForce,
-        'preset_percent_limit': '0.0',
-        'market_hours': market_hours, # ['regular_hours', 'all_day_hours']
-        'extended_hours': extendedHours,
-        'order_form_version': 4
-        }
-    else: # sell
-        payload = {
-        'account': load_account_profile(account_number=account_number, info='url'),
-        'instrument': get_instruments_by_symbols(symbol, info='url')[0],
-        'symbol': symbol,
-        # 'price': round_price(next(iter(get_latest_price(symbol, 'bid_price', extendedHours)), 0.00)*1.005),
-        'quantity': quantity,
-        'ref_id': str(uuid4()),
-        'side': side,
-        'type': 'market',
-        'trigger': 'immediate',
-        'time_in_force': timeInForce,
-        'preset_percent_limit': '0.0',
-        'market_hours': market_hours, # ['regular_hours', 'all_day_hours']
-        'extended_hours': extendedHours,
-        'order_form_version': 4
-        }
+        priceType = "ask_price"
+    else:
+        priceType = "bid_price"
 
+    if limitPrice and stopPrice:
+        price = round_price(limitPrice)
+        stopPrice = round_price(stopPrice)
+        orderType = "limit"
+        trigger = "stop"
+    elif limitPrice:
+        price = round_price(limitPrice)
+        orderType = "limit"
+    elif stopPrice:
+        stopPrice = round_price(stopPrice)
+        if side == "buy":
+            price = stopPrice
+        else:
+            price = None
+        trigger = "stop"
+    else:
+        price = round_price(float(next(iter(get_latest_price(symbol, 'ask_price', extendedHours)), 0.00))*1.001)
+    payload = {
+        'account': load_account_profile(account_number=account_number, info='url'),
+        'instrument': get_instruments_by_symbols(symbol, info='url')[0],
+        'symbol': symbol,
+        'price': price,
+        'quantity': quantity,
+        'ref_id': str(uuid4()),
+        'type': orderType,
+        'stop_price': stopPrice,
+        'time_in_force': timeInForce,
+        'trigger': trigger,
+        'side': side,
+        'market_hours': market_hours, # choices are ['regular_hours', 'all_day_hours']
+        'extended_hours': extendedHours,
+        'order_form_version': 4
+    }
+    # adjust market orders
+    if orderType == 'market':
+        del payload['stop_price']
+        del payload['extended_hours']
+        
+    if market_hours == 'regular_hours':
+        if side == "buy":
+            payload['preset_percent_limit'] = "0.05"
+            payload['type'] = 'limit'
+        # regular market sell
+        elif orderType == 'market' and side == 'sell':
+            del payload['price']
+    elif market_hours == 'all_day_hours':
+        payload['type'] = 'limit'
+        payload['quantity']=int(payload['quantity']) # round to integer instead of fractional
+    # print(f"{payload = }")
+    # return None
     url = orders_url()
     data = request_post(url, payload, jsonify_data=jsonify)
     return(data)
+
+# https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/robinhood/orders.py#L778
+# @login_required
+# def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_number=None, timeInForce='gfd', extendedHours=False, jsonify=True, market_hours='regular_hours'):
+
+#     if side == "buy":
+#         payload = {
+#         'account': load_account_profile(account_number=account_number, info='url'),
+#         'instrument': get_instruments_by_symbols(symbol, info='url')[0],
+#         'symbol': symbol,
+#         'price': round_price(float(next(iter(get_latest_price(symbol, 'ask_price', extendedHours)), 0.00))*1.0025),
+#         'quantity': quantity,
+#         'ref_id': str(uuid4()),
+#         'side': side,
+#         'type': 'market',
+#         'trigger': 'immediate',
+#         'time_in_force': timeInForce,
+#         'preset_percent_limit': '0.0',
+#         'market_hours': market_hours, # ['regular_hours', 'all_day_hours']
+#         'extended_hours': extendedHours,
+#         'order_form_version': 4
+#         }
+#     else: # sell
+#         payload = {
+#         'account': load_account_profile(account_number=account_number, info='url'),
+#         'instrument': get_instruments_by_symbols(symbol, info='url')[0],
+#         'symbol': symbol,
+#         # 'price': round_price(next(iter(get_latest_price(symbol, 'bid_price', extendedHours)), 0.00)*1.005),
+#         'quantity': quantity,
+#         'ref_id': str(uuid4()),
+#         'side': side,
+#         'type': 'market',
+#         'trigger': 'immediate',
+#         'time_in_force': timeInForce,
+#         'preset_percent_limit': '0.0',
+#         'market_hours': market_hours, # ['regular_hours', 'all_day_hours']
+#         'extended_hours': extendedHours,
+#         'order_form_version': 4
+#         }
+
+#     url = orders_url()
+#     data = request_post(url, payload, jsonify_data=jsonify)
+#     return(data)
 
 # def test_orders(symbol):
 #     return round_price(float(next(iter(get_latest_price(symbol, 'ask_price', False)), 0.00))*1.0025)
