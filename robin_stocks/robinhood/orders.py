@@ -851,17 +851,17 @@ def order_trailing_stop(symbol, quantity, side, trailAmount, trailType='percenta
 #     # adjust market orders
 #     if orderType == 'market':
 #         del payload['stop_price']
-#         del payload['extended_hours'] 
+#         del payload['extended_hours']
         
 #     if market_hours == 'regular_hours':
 #         if side == "buy":
 #             payload['preset_percent_limit'] = "0.05"
-#             payload['type'] = 'limit' 
+#             payload['type'] = 'limit'
 #         # regular market sell
 #         elif orderType == 'market' and side == 'sell':
-#             del payload['price']   
-#     elif market_hours == 'all_day_hours': 
-#         payload['type'] = 'limit' 
+#             del payload['price']
+#     elif market_hours == 'all_day_hours':
+#         payload['type'] = 'limit'
 #         payload['quantity']=int(payload['quantity']) # round to integer instead of fractional
 #     url = orders_url()
 #     data = request_post(url, payload, jsonify_data=jsonify)
@@ -872,35 +872,46 @@ def order_trailing_stop(symbol, quantity, side, trailAmount, trailType='percenta
 def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_number=None, timeInForce='gfd', extendedHours=False, jsonify=True, market_hours='regular_hours'):
 
     if side == "buy":
-        priceType = "ask_price"
-        orderType = "limit"
-        trigger = "immediate"
-    else: # sell
-        priceType = "bid_price"
-        orderType = "market"
-        trigger = "immediate"
-
-    payload = {
+        payload = {
         'account': load_account_profile(account_number=account_number, info='url'),
         'instrument': get_instruments_by_symbols(symbol, info='url')[0],
         'symbol': symbol,
-        'price': round_price(next(iter(get_latest_price(symbol, priceType, extendedHours)), 0.00)),
+        'price': round_price(float(next(iter(get_latest_price(symbol, 'ask_price', extendedHours)), 0.00))*1.0025),
         'quantity': quantity,
         'ref_id': str(uuid4()),
-        'type': orderType,
-        'time_in_force': timeInForce,
-        'trigger': trigger,
         'side': side,
-        'preset_percent_limit': '0.10',
-        'market_hours': market_hours, # choices are ['regular_hours', 'all_day_hours']
+        'type': 'limit',
+        'trigger': 'immediate',
+        'time_in_force': timeInForce,
+        'preset_percent_limit': '0.0',
+        'market_hours': market_hours, # ['regular_hours', 'all_day_hours']
         'extended_hours': extendedHours,
         'order_form_version': 4
-    }        
+        }
+    else: # sell
+        payload = {
+        'account': load_account_profile(account_number=account_number, info='url'),
+        'instrument': get_instruments_by_symbols(symbol, info='url')[0],
+        'symbol': symbol,
+        # 'price': round_price(next(iter(get_latest_price(symbol, 'bid_price', extendedHours)), 0.00)*1.005),
+        'quantity': quantity,
+        'ref_id': str(uuid4()),
+        'side': side,
+        'type': 'market',
+        'trigger': 'immediate',
+        'time_in_force': timeInForce,
+        'preset_percent_limit': '0.0',
+        'market_hours': market_hours, # ['regular_hours', 'all_day_hours']
+        'extended_hours': extendedHours,
+        'order_form_version': 4
+        }
+
     url = orders_url()
     data = request_post(url, payload, jsonify_data=jsonify)
     return(data)
 
-# def test_orders():
+# def test_orders(symbol):
+#     return round_price(float(next(iter(get_latest_price(symbol, 'ask_price', False)), 0.00))*1.0025)
 #     symbol = "TQQQ"
 #     side = "sell"
 #     orderType = "market" # limit
