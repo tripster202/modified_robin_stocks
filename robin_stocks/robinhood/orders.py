@@ -374,8 +374,9 @@ def order_buy_fractional_by_price(symbol, amountInDollars, account_number=None, 
     """ 
     if amountInDollars < 1:
       #   print("ERROR: Fractional share price should meet minimum 1.00.", file=get_output())
-        with open('err.out', 'a') as ff:
-          print("ERROR: Fractional share price should meet minimum 1.00.", file=ff)
+        # with open('err.out', 'a') as ff:
+        #   print("ERROR: Fractional share price should meet minimum 1.00.", file=ff)
+        print("ERROR: Fractional share price should meet minimum 1.00.")
         return None
 
     # turn the money amount into decimal number of shares
@@ -807,8 +808,9 @@ def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_numbe
         symbol = symbol.upper().strip()
     except AttributeError as message:
       #   print(message, file=get_output())
-        with open('err.out', 'a') as ff:
-          print(message, file=ff)
+        # with open('err.out', 'a') as ff:
+        #   print(message, file=ff)
+        print(f"{message = }")
         return None
 
     orderType = "market"
