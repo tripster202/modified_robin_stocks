@@ -804,14 +804,16 @@ def order(symbol, quantity, side, limitPrice=None, stopPrice=None, account_numbe
     the price, and the quantity.
 
     """ 
-    try:
-        symbol = symbol.upper().strip()
-    except AttributeError as message:
-      #   print(message, file=get_output())
-        # with open('err.out', 'a') as ff:
-        #   print(message, file=ff)
-        print(f"{message = }")
-        return None
+    # try:
+    #     symbol = symbol.upper().strip()
+    # except AttributeError as message:
+    #   #   print(message, file=get_output())
+    #     # with open('err.out', 'a') as ff:
+    #     #   print(message, file=ff)
+    #     print(f"{message = }")
+    #     return None
+
+    symbol = symbol.upper().strip()
 
     orderType = "market"
     trigger = "immediate"
