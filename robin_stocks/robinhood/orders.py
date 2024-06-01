@@ -18,7 +18,8 @@ def get_all_stock_orders(info=None):
 
     """
     url = orders_url()
-    data = request_get(url, 'pagination')
+     data = request_get(url, 'pagination')
+   #  data = request_get(url, 'results')
     return(filter_data(data, info))
 
 
